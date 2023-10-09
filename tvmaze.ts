@@ -8,32 +8,49 @@ const $episodesArea = $("#episodesArea");
 const $searchForm = $("#searchForm");
 
 const TV_MAZE_BASE_URL = "https://api.tvmaze.com/search/shows";
+const DEFAULT_IMAGE_URL = "https://tinyurl.com/tv-missing";
+
 interface ShowInterface {
   id: number;
   name: string;
   summary: string;
   image: string;
 }
+
 /** Given a search term, search for tv shows that match that query.
  *
  *  Returns (promise) array of show objects: [show, show, ...].
  *    Each show object should contain exactly: {id, name, summary, image}
  *    (if no image URL given by API, put in a default image URL)
- */
+*/
 
 async function searchShowsByTerm(term: string): Promise<[]> {
   const params = new URLSearchParams({ q: term });
-  const res = await fetch(`${TV_MAZE_BASE_URL}?${params}`);
-  const shows:any = await res.json();
 
-  for(let tvShow of shows){
-    tvShow: ShowInterface = {
+  const res = await fetch(`${TV_MAZE_BASE_URL}/?${params}`);
+  const shows: any = await res.json();
+
+  const collectedShows: any = [];
+
+  for (let tvShow of shows) {
+    let show: ShowInterface = {
       id: tvShow.show.id,
       name: tvShow.show.name,
       summary: tvShow.show.summary,
-      image: tvShow.show.image}
+      image: tvShow.show.image.original
+    };
+
+    if (show.image) {
+      show.image = tvShow.show.image.original;
+    }
+    else {
+      show.image = DEFAULT_IMAGE_URL;
+    }
+
+    collectedShows.push(show);
   }
-  return shows;
+  console.log('collectedshows', collectedShows);
+  return collectedShows;
   // [
   //   {
   //     id: 1767,
@@ -64,10 +81,10 @@ function populateShows(shows) {
     const $show = $(
       `<div data-show-id="${show.id}" class="Show col-md-12 col-lg-6 mb-4">
          <div class="media">
-           <img
-              src="http://static.tvmaze.com/uploads/images/medium_portrait/160/401704.jpg"
-              alt="Bletchly Circle San Francisco"
-              class="w-25 me-3">
+          <img
+            src="${show.image}"
+            alt="${show.name}"
+            class="w-25 me-3">
            <div class="media-body">
              <h5 class="text-primary">${show.name}</h5>
              <div><small>${show.summary}</small></div>
