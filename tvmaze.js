@@ -10814,7 +10814,6 @@ function searchShowsByTerm(term) {
                         };
                         collectedShows.push(show);
                     }
-                    //console.log('collectedshows', collectedShows);
                     return [2 /*return*/, collectedShows];
             }
         });
@@ -10890,7 +10889,9 @@ function getEpisodesOfShow(id) {
         });
     });
 }
-/** Write a clear docstring for this function... */
+/** Given an episodes array, create a list item for each episode object and
+ * display list of episodes on DOM.
+*/
 function populateEpisodes(episodes) {
     $("#episodesList").empty();
     for (var _i = 0, episodes_1 = episodes; _i < episodes_1.length; _i++) {
@@ -10899,8 +10900,8 @@ function populateEpisodes(episodes) {
     }
     $episodesArea.show();
 }
-/** */
-function getEpisodesAndDisplay(target) {
+/** Handle click on episodes button: get episodes for show and display */
+function handleAndPopulateEpisodes(target) {
     return __awaiter(this, void 0, void 0, function () {
         var showID, episodes;
         return __generator(this, function (_a) {
@@ -10922,7 +10923,7 @@ $showsList.on('click', '.Show-getEpisodes', function (e) {
             switch (_a.label) {
                 case 0:
                     e.preventDefault();
-                    return [4 /*yield*/, getEpisodesAndDisplay(e.target)];
+                    return [4 /*yield*/, handleAndPopulateEpisodes(e.target)];
                 case 1:
                     _a.sent();
                     return [2 /*return*/];
