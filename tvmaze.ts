@@ -9,6 +9,18 @@ const $searchForm = $("#searchForm");
 const TV_MAZE_BASE_URL = "https://api.tvmaze.com/";
 const DEFAULT_IMAGE_URL = "https://tinyurl.com/tv-missing";
 
+// basic structure of our fetch req for getting all shows
+// we can just supply the minimum structure that we care about, not the whole shape
+interface ShowResultInterface {
+  show: {
+    id: number,
+    name: string,
+    summary: string,
+    image: { original: string; } | null,
+  };
+}
+
+// structure of one show
 interface ShowInterface {
   id: number;
   name: string;
@@ -30,13 +42,13 @@ interface EpisodeInterface {
  *    (if no image URL given by API, put in a default image URL)
 */
 
-async function searchShowsByTerm(term: string): Promise<[]> {
+async function searchShowsByTerm(term: string): Promise<ShowInterface[]> {
   const params = new URLSearchParams({ q: term });
 
   const res = await fetch(`${TV_MAZE_BASE_URL}search/shows/?${params}`);
-  const shows: any = await res.json();
+  const shows = await res.json() as ShowResultInterface[];
 
-  const collectedShows: any = [];
+  const collectedShows = [];
 
   for (let tvShow of shows) {
     let show: ShowInterface = {
@@ -54,7 +66,7 @@ async function searchShowsByTerm(term: string): Promise<[]> {
 
 /** Given list of shows, create markup for each and to DOM */
 
-function populateShows(shows: any[]) {
+function populateShows(shows: ShowInterface[]) {
   $showsList.empty();
 
   for (let show of shows) {
@@ -85,7 +97,7 @@ function populateShows(shows: any[]) {
  */
 
 async function searchForShowAndDisplay(): Promise<void> {
-  const term = $("#searchForm-term").val();
+  const term = $("#searchForm-term").val() as string;
   const shows = await searchShowsByTerm(term);
 
   $episodesArea.hide();
@@ -101,9 +113,9 @@ $searchForm.on("submit", async function (evt) {
  *      { id, name, season, number }
  */
 
-async function getEpisodesOfShow(id: string): Promise<[]> {
+async function getEpisodesOfShow(id: string): Promise<EpisodeInterface[]> {
   const res = await fetch(`${TV_MAZE_BASE_URL}shows/${id}/episodes`);
-  const episodeData: any = await res.json();
+  const episodeData = await res.json() as EpisodeInterface[];
 
   const episodes = episodeData.map((episode: EpisodeInterface) =>
   ({
@@ -112,13 +124,14 @@ async function getEpisodesOfShow(id: string): Promise<[]> {
     season: episode.season,
     number: episode.number
   }));
+
   return episodes;
 }
 
 /** Given an episodes array, create a list item for each episode object and
  * display list of episodes on DOM.
 */
-function populateEpisodes(episodes: any[]) {
+function populateEpisodes(episodes: EpisodeInterface[]) {
   $("#episodesList").empty();
   for (const episode of episodes) {
     $("#episodesList").append(`<li>${episode.name} (season ${episode.season}, number ${episode.number})</li>`);
@@ -129,7 +142,7 @@ function populateEpisodes(episodes: any[]) {
 
 /** Handle click on episodes button: get episodes for show and display */
 async function handleAndPopulateEpisodes(target: {}): Promise<void> {
-  const showID = $(target).closest('.Show').attr('data-show-id');
+  const showID = $(target).closest('.Show').attr('data-show-id') as string;
 
   const episodes = await getEpisodesOfShow(showID);
   populateEpisodes(episodes);
